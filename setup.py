@@ -136,4 +136,8 @@ server.user(
         groups = ["docker"]
 )
 
-
+# Delete TEMP DIR
+files.directory(
+    path = TEMP_FILE,
+    present = False,
+)
