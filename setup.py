@@ -4,9 +4,9 @@ from pyinfra.facts.server import Command
 from random import randint 
 
 # Create a temp file for storing things
-TEMP_FILE = f"/tmp/tmp_{ hex(randint(int(10e19),int(10e20)))[2:] }"
+TEMP_DIR = f"/tmp/tmp_{ hex(randint(int(10e19),int(10e20)))[2:] }"
 files.directory(
-    path = TEMP_FILE,
+    path = TEMP_DIR,
     present = True,
     user = "root",
     group = "root",
@@ -90,7 +90,11 @@ systemd.service(
 # Install Brave
 server.shell(
     name="install Brave from their shell code",
-    commands=["curl -fsS https://dl.brave.com/install.sh | sh"]
+    commands=[
+        f"curl -fsS -o {TEMP_DIR}/brave_install.sh https://dl.brave.com/install.sh",
+        f"chmod +x {TEMP_DIR}/brave_install.sh",
+        f"{TEMP_DIR}/brave_install.sh"
+    ]
 )
 
 # Install DBeaver
@@ -99,11 +103,11 @@ dbeaver_url="https://dbeaver.io/files/dbeaver-ce-latest-linux-x86_64.deb"
 files.download(
     name = "Download DBeaver DEB file",
     src = dbeaver_url,
-    dest = f"{TEMP_FILE}/dbeaver.deb"
+    dest = f"{TEMP_DIR}/dbeaver.deb"
 )
 
 apt.deb(
-    src = f"{TEMP_FILE}/dbeaver.deb",
+    src = f"{TEMP_DIR}/dbeaver.deb",
     present = True
 );
 
@@ -111,11 +115,11 @@ apt.deb(
 server.script(
         name="Download Caido DEB package",
         src="scripts/download_caido_deb.sh",
-        args=(TEMP_FILE,)
+        args=(TEMP_DIR,)
 )
 
 apt.deb(
-    src = f"{TEMP_FILE}/caido.deb",
+    src = f"{TEMP_DIR}/caido.deb",
     present = True
 )
 
@@ -138,6 +142,6 @@ server.user(
 
 # Delete TEMP DIR
 files.directory(
-    path = TEMP_FILE,
+    path = TEMP_DIR,
     present = False,
 )
